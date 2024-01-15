@@ -1,0 +1,162 @@
+import io.grpc.Server;
+import io.grpc.ServerBuilder;
+import io.grpc.stub.StreamObserver;
+
+public class MyGrpcServer {
+
+    private static final int PORT = 8080;
+
+    public static void main(String[] args) throws Exception {
+        // Create a new server instance
+        Server server = ServerBuilder.forPort(PORT)
+                .addService(new GreeterService())
+                .build();
+
+        // Start the server
+        server.start();
+
+        System.out.println("Server started on port " + PORT);
+
+        // Block until the JVM is shutdown
+        server.awaitTermination();
+    }
+
+    // Define the GreeterService with a single RPC method
+    static class GreeterService extends GreeterGrpc.GreeterImplBase {
+        @Override
+        public void sayHello(HelloRequest request, StreamObserver<HelloResponse> responseObserver) {
+            // Get the name from the request
+            String name = request.getName();
+
+            // Build the response
+            HelloResponse response = HelloResponse.newBuilder()
+                    .setMessage("Hello, " + name + "!")
+                    .build();
+
+            // Send the response to the client
+            responseObserver.onNext(response);
+
+            // Notify the client that the RPC is completed
+            responseObserver.onCompleted();
+        }
+    }
+}
+
+---------------------
+
+
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+
+public class MyGrpcClient {
+
+    private static final String SERVER_HOST = "localhost";
+    private static final int SERVER_PORT = 8080;
+
+    public static void main(String[] args) {
+        // Create a channel to connect to the server
+        ManagedChannel channel = ManagedChannelBuilder.forAddress(SERVER_HOST, SERVER_PORT)
+                .usePlaintext() // Use plaintext communication. In production, consider using encryption.
+                .build();
+
+        // Create a stub for the Greeter service
+        GreeterGrpc.GreeterBlockingStub blockingStub = GreeterGrpc.newBlockingStub(channel);
+
+        // Prepare the request
+        HelloRequest request = HelloRequest.newBuilder()
+                .setName("John")
+                .build();
+
+        try {
+            // Call the SayHello RPC and get the response
+            HelloResponse response = blockingStub.sayHello(request);
+
+            // Display the response from the server
+            System.out.println("Response from server: " + response.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            // Shutdown the channel when done
+            channel.shutdown();
+        }
+    }
+}
+---
+
+
+syntax = "proto3";
+
+// Define the Greeter service
+service Greeter {
+  // Define the SayHello RPC method
+  rpc SayHello (HelloRequest) returns (HelloResponse);
+}
+
+// Define the HelloRequest message
+message HelloRequest {
+  // The name to include in the greeting
+  string name = 1;
+}
+
+// Define the HelloResponse message
+message HelloResponse {
+  // The greeting message
+  string message = 1;
+}
+
+
+---------
+
+
+import your.package.name.RunGameRequest;
+
+// ...
+
+// Create a builder for RunGameRequest
+RunGameRequest.Builder requestBuilder = RunGameRequest.newBuilder();
+
+// Set values for each field
+requestBuilder.setCharacter1("Character1Value");
+requestBuilder.setCharacter2("Character2Value");
+requestBuilder.setPlayer1("Player1Value");
+requestBuilder.setPlayer2("Player2Value");
+requestBuilder.setGameNumber(123);  // Set the integer value for game_number
+
+// Build the RunGameRequest instance
+RunGameRequest runGameRequest = requestBuilder.build();
+
+
+
+--------
+
+
+        // Create a blocking stub for the Greeter service
+        GreeterGrpc.GreeterBlockingStub blockingStub = GreeterGrpc.newBlockingStub(channel);
+
+
+
+----------------
+
+
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+
+public class MyGrpcClient {
+
+    private static final String SERVER_HOST = "localhost";
+    private static final int SERVER_PORT = 8080;
+
+    public static void main(String[] args) {
+        // Create a channel to connect to the server
+        ManagedChannel channel = ManagedChannelBuilder.forAddress(SERVER_HOST, SERVER_PORT)
+                .usePlaintext() // Use plaintext communication. In production, consider using encryption.
+                .build();
+
+        // Create a blocking stub for the Greeter service
+        GreeterGrpc.GreeterBlockingStub blockingStub = GreeterGrpc.newBlockingStub(channel);
+
+        // ... rest of the client code ...
+    }
+}
+
+--py4j
